@@ -21,12 +21,13 @@ function usePolling({
     setErrors(null);
     try {
       if (endpoint) {
-        const response = await axios(endpoint);
+        const response = await axiosInstance(endpoint);
         if (onResponse) return onResponse(response);
       }
       if (func) await func();
     } catch(e) {
       setErrors(e);
+      console.log(e);
     } finally {
       setBusy(false);
     }

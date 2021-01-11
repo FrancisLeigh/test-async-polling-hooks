@@ -2,9 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import poll from 'poll';
 
-import axios from 'axios';
-
-export const axiosInstance = axios.create();
+import useAxios from './useAxios';
 
 function usePolling({
   endpoint,
@@ -12,26 +10,24 @@ function usePolling({
   interval = 3000,
   func,
 }) {
+  const { axios, cancel, errors } = useAxios();
   const [busy, setBusy] = useState(false);
-  const [errors, setErrors] = useState(null);
   const shouldStop = useRef(false);
 
   const request = useCallback(async () => {
     setBusy(true);
-    setErrors(null);
     try {
       if (endpoint) {
-        const response = await axiosInstance(endpoint);
+        const response = await axios(endpoint);
         if (onResponse) return onResponse(response);
       }
       if (func) await func();
     } catch(e) {
-      setErrors(e);
       console.log(e);
     } finally {
       setBusy(false);
     }
-  }, [endpoint, onResponse, func])
+  }, [endpoint, onResponse, func, axios])
 
 
   function shouldStopPolling() {
@@ -48,6 +44,7 @@ function usePolling({
 
   function stop() {
     shouldStop.current = true;
+    if (endpoint) cancel();
   }
 
   return {

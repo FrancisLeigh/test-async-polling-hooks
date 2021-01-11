@@ -1,7 +1,8 @@
 import moxios from 'moxios';
 
 import { renderHook, act } from '@testing-library/react-hooks';
-import usePolling, { axiosInstance } from './usePolling';
+import usePolling from './usePolling';
+import { hookedAxios } from './useAxios';
 
 const endpoint = '/test/api';
 const errorText = 'Error!';
@@ -23,12 +24,12 @@ describe('usePolling hook', () => {
   });
 
   beforeEach(() => {
-    moxios.install(axiosInstance);
+    moxios.install(hookedAxios);
     moxios.stubRequest(endpoint, mockPollingResponse.pos);
   });
 
   beforeAll(() => {
-    jest.setTimeout(30000)
+    jest.setTimeout(30000);
     jest.useFakeTimers();
   });
 
@@ -58,9 +59,21 @@ describe('usePolling hook', () => {
     expect(func).not.toHaveBeenCalled();
 
     await act(async () => {
-      await result.current.start()
+      await result.current.start();
     });
     expect(func).toHaveBeenCalledTimes(1);
+
+    await act(async () => jest.advanceTimersByTime(1000));
+    expect(func).toHaveBeenCalledTimes(2);
+
+    await act(async () => jest.advanceTimersByTime(1000));
+    expect(func).toHaveBeenCalledTimes(3);
+
+    await act(async () => jest.advanceTimersByTime(1000));
+    expect(func).toHaveBeenCalledTimes(4);
+
+    await act(async () => jest.advanceTimersByTime(1000));
+    expect(func).toHaveBeenCalledTimes(5);
 
     result.current.stop();
   });
